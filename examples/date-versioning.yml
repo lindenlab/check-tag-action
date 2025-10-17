@@ -1,0 +1,34 @@
+# Date-Based Versioning Example
+#
+# This workflow demonstrates date-based versioning where tags are
+# automatically generated from the current date (YYYY.M.D format).
+#
+# Version file should contain: date
+
+name: Date Versioning CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create date-based tag
+        uses: lindenlab/check-tag-action@v1
+        with:
+          mode: tag
+
+      - name: Deploy with date version
+        run: |
+          echo "Deploying version ${{ steps.tag.outputs.tag }}"
+          # Your deployment commands here
+
+  # Multiple deployments on the same day will auto-increment:
+  # First:  v2025.10.17
+  # Second: v2025.10.17.1
+  # Third:  v2025.10.17.2
+  # etc.

@@ -1,0 +1,89 @@
+name: Test Action
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-check-mode:
+    name: Test Check Mode
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create test Version file
+        run: echo "0.0.1" > Version
+
+      - name: Test check mode
+        uses: ./
+        with:
+          mode: check
+
+  test-dry-run:
+    name: Test Dry Run Mode
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create test Version file
+        run: echo "0.0.1" > Version
+
+      - name: Test tag creation in dry run
+        uses: ./
+        with:
+          mode: tag
+        env:
+          DRY_RUN: true
+
+  test-date-versioning:
+    name: Test Date Versioning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create date-based Version file
+        run: echo "date" > Version
+
+      - name: Test date version check
+        uses: ./
+        with:
+          mode: check
+
+  test-monorepo:
+    name: Test Monorepo Structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create monorepo Version files
+        run: |
+          mkdir -p service1 service2
+          echo "1.0.0" > service1/Version
+          echo "2.0.0" > service2/Version
+
+      - name: Test monorepo check
+        uses: ./
+        with:
+          mode: check
+
+  test-script-help:
+    name: Test Script Help
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Make script executable
+        run: chmod +x scripts/tag.sh
+
+      - name: Test help output
+        run: ./scripts/tag.sh --help

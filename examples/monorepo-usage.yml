@@ -1,0 +1,58 @@
+# Monorepo Usage Example
+#
+# This workflow demonstrates using check-tag-action in a monorepo
+# where multiple services/packages are versioned independently.
+#
+# Directory structure:
+# service1/Version   → creates tag service1/v1.2.3
+# service2/Version   → creates tag service2/v2.0.0
+# frontend/Version   → creates tag frontend/v3.1.0
+
+name: Monorepo CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  # Check all service versions in PRs
+  check-versions:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all Version files
+        uses: lindenlab/check-tag-action@v1
+        with:
+          mode: check
+
+  # Build each service (example)
+  build-services:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [service1, service2, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.service }}
+        run: |
+          cd ${{ matrix.service }}
+          echo "Building ${{ matrix.service }}..."
+          # make build
+
+  # Tag all services on main
+  tag-releases:
+    if: github.ref == 'refs/heads/main'
+    needs: build-services
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create tags for all services
+        uses: lindenlab/check-tag-action@v1
+        with:
+          mode: tag
+
+      # The action will create multiple tags if multiple Version files exist
+      # service1/v1.2.3, service2/v2.0.0, frontend/v3.1.0

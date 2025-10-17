@@ -1,0 +1,47 @@
+name: 'Version Check & Tag Action'
+description: 'Automatically check version files and create Git tags for semantic and date-based versioning'
+author: 'Linden Lab'
+
+inputs:
+  mode:
+    description: 'Mode to run: "check" to validate version files, "tag" to create tags'
+    required: false
+    default: 'tag'
+  token:
+    description: 'GitHub token for pushing tags (defaults to github.token)'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  tag:
+    description: 'The Git tag that was created (only in tag mode)'
+    value: ${{ steps.tag.outputs.tag }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ inputs.token }}
+        fetch-tags: true
+        fetch-depth: 0
+
+    - name: Make script executable
+      shell: bash
+      run: chmod +x ${{ github.action_path }}/scripts/tag.sh
+
+    - name: Run version check
+      if: inputs.mode == 'check'
+      shell: bash
+      run: ${{ github.action_path }}/scripts/tag.sh check_version
+
+    - name: Create and push tags
+      if: inputs.mode == 'tag'
+      id: tag
+      shell: bash
+      run: ${{ github.action_path }}/scripts/tag.sh
+
+branding:
+  icon: 'tag'
+  color: 'blue'

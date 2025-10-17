@@ -1,0 +1,8 @@
+# Ensure shell scripts are always executable
+*.sh text eol=lf
+scripts/*.sh text eol=lf
+
+# Ensure consistent line endings
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf

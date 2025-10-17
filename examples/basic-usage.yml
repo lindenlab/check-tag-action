@@ -1,0 +1,52 @@
+# Basic Usage Example
+#
+# This workflow demonstrates basic usage of the check-tag-action:
+# - On pull requests: check that version has been bumped
+# - On main branch: create release tags
+
+name: Basic CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  # Validate version was bumped in PRs
+  check-version:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check version
+        uses: lindenlab/check-tag-action@v1
+        with:
+          mode: check
+
+  # Run tests (example)
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          # Add your test commands here
+          # make test
+
+  # Create release tag when merged to main
+  tag-release:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create release tag
+        uses: lindenlab/check-tag-action@v1
+        with:
+          mode: tag
+
+      # Optional: use the created tag for other steps
+      - name: Print created tag
+        run: echo "Created tag ${{ steps.tag.outputs.tag }}"
